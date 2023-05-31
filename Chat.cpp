@@ -1,4 +1,3 @@
-#pragma once
 #include "Chat.h"
 
 void Chat::start()
@@ -190,7 +189,9 @@ void Chat::change_password()
 
 void Chat::show_chat() const // showing all messages
 {
-	system("cls");
+	//system("cls");
+	//system("clear");
+
 	for (auto& message : messages_) {
 		if (current_user_->get_name() == message.get_from())
 			std::cout << "\x1b[33m" << message.get_from() << ": " << message.get_text() << "\x1b[0m" << std::endl;

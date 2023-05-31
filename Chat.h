@@ -4,6 +4,7 @@
 #include <exception>
 #include <iostream>
 #include <string>
+#include <limits>
 #include "Message.h"
 #include "User.h"
 

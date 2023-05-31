@@ -1,5 +1,3 @@
-//This is a final project for Module 1 at SkillFactory course C-PLUS.
-//Here we have to demonstrate our knowledges of C++ basics and make a simple console chat for 1 device.
 #include "Chat.h"
 
 int main()
