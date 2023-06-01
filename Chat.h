@@ -4,7 +4,14 @@
 #include <exception>
 #include <iostream>
 #include <string>
+#include <fstream>
+#include <iostream>
+#include <filesystem>
+#ifdef _WIN32
+#else
 #include <limits>
+#include <sys/stat.h>
+#endif
 #include "Message.h"
 #include "User.h"
 

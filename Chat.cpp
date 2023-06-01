@@ -2,14 +2,39 @@
 
 void Chat::start()
 {
+	std::ifstream file_users("users.txt");
+	if (file_users.is_open()) {
+		std::string login, name, pass;
+		while (file_users >> login >> name >> pass) {
+			users_.emplace_back(login, name, pass);
+		}
+		file_users.close();
+	}
+	else {
+		std::cout << "file not open " << std::endl;
+	}
+
+	std::ifstream file("messages.txt");
+	if (file.is_open()) {
+		std::string from, to, text;
+		while (std::getline(file, from) && std::getline(file, to) && std::getline(file, text)) {
+			messages_.emplace_back(from, to, text);
+		}
+		file.close();
+}
+	else {
+		std::cout << "file not open " << std::endl;
+	}
+
+#ifdef _WIN32
+#else
+	// Установить права доступа к файлу "users.txt" как 600 (rw-------)
+	chmod("users.txt", S_IRUSR | S_IWUSR);
+	chmod("messages.txt", S_IRUSR | S_IWUSR);
+#endif
+
 	is_chat_work_ = true;
-	// user imitation
-	//User<std::string> user1("1", "1", "1");
-	//User<std::string> user2("2", "2", "2");
-	//User<std::string> user3("3", "3", "3");
-	//users_.push_back(user1);
-	//users_.push_back(user2);
-	//users_.push_back(user3);
+	
 }
 
 void Chat::show_login_menu()
@@ -34,6 +59,28 @@ void Chat::show_login_menu()
 		break;
 	}
 	case 'q': {
+		std::ofstream file_users("users.txt");
+		if (file_users.is_open()) {
+			for (auto& user : users_) {
+				file_users << user.get_login() << ' ' << user.get_name() << ' ' << user.get_password() << '\n';
+			}
+			file_users.close();
+		}
+		else {
+			std::cout << "file not open " << std::endl;
+		}
+
+		std::ofstream file("messages.txt");
+		if (file.is_open()) {
+			for (auto& message : messages_) {
+				file << message.get_from() << std::endl << message.get_to() << std::endl << message.get_text() << std::endl;
+			}
+			file.close();
+		}
+		else {
+			std::cout << "file not open " << std::endl;
+		}
+
 		is_chat_work_ = false;
 		break;
 	}
@@ -189,8 +236,12 @@ void Chat::change_password()
 
 void Chat::show_chat() const // showing all messages
 {
-	//system("cls");
-	//system("clear");
+#ifdef _WIN32
+	system("cls");
+#else
+	system("clear");
+#endif
+	
 
 	for (auto& message : messages_) {
 		if (current_user_->get_name() == message.get_from())
