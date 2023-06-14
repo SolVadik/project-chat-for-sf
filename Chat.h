@@ -8,7 +8,10 @@
 #include <iostream>
 #include <filesystem>
 #ifdef _WIN32
-#else
+constexpr auto PLATFORM_NAME = "Windows";
+#elif __linux__
+constexpr auto PLATFORM_NAME = "Linux";
+#include <chrono>
 #include <limits>
 #include <sys/stat.h>
 #endif

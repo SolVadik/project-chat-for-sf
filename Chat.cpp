@@ -2,6 +2,25 @@
 
 void Chat::start()
 {
+	// system info
+#ifdef _WIN32
+
+	std::time_t t = std::time(nullptr);
+	char buffer[100];
+	struct tm timeinfo;
+	localtime_s(&timeinfo, &t);
+	std::strftime(buffer, sizeof(buffer), "%c", &timeinfo);
+	std::cout << "This program is running on " << PLATFORM_NAME << " at " << buffer << std::endl;
+
+#elif __linux__
+	auto now = std::chrono::system_clock::now();
+    std::time_t end_time = std::chrono::system_clock::to_time_t(now);
+	std::cout << "This program is running on " << PLATFORM_NAME << std::endl;
+    std::cout << "Current Time and Date: " << ctime(&end_time) << std::endl;
+#endif
+
+
+	// read save
 	std::ifstream file_users("users.txt");
 	if (file_users.is_open()) {
 		std::string login, name, pass;
@@ -14,24 +33,17 @@ void Chat::start()
 		std::cout << "file not open " << std::endl;
 	}
 
-	std::ifstream file("messages.txt");
-	if (file.is_open()) {
+	std::ifstream file_messages("messages.txt");
+	if (file_messages.is_open()) {
 		std::string from, to, text;
-		while (std::getline(file, from) && std::getline(file, to) && std::getline(file, text)) {
+		while (std::getline(file_messages, from) && std::getline(file_messages, to) && std::getline(file_messages, text)) {
 			messages_.emplace_back(from, to, text);
 		}
-		file.close();
+		file_messages.close();
 }
 	else {
 		std::cout << "file not open " << std::endl;
 	}
-
-#ifdef _WIN32
-#else
-	// Установить права доступа к файлу "users.txt" как 600 (rw-------)
-	chmod("users.txt", S_IRUSR | S_IWUSR);
-	chmod("messages.txt", S_IRUSR | S_IWUSR);
-#endif
 
 	is_chat_work_ = true;
 	
@@ -59,6 +71,7 @@ void Chat::show_login_menu()
 		break;
 	}
 	case 'q': {
+		// save users and messages
 		std::ofstream file_users("users.txt");
 		if (file_users.is_open()) {
 			for (auto& user : users_) {
@@ -80,6 +93,13 @@ void Chat::show_login_menu()
 		else {
 			std::cout << "file not open " << std::endl;
 		}
+
+		// Set file permissions  600 (rw-------)
+#ifdef _WIN32
+#elif __linux__
+		chmod("users.txt", S_IRUSR | S_IWUSR);
+		chmod("messages.txt", S_IRUSR | S_IWUSR);
+#endif
 
 		is_chat_work_ = false;
 		break;
@@ -238,7 +258,7 @@ void Chat::show_chat() const // showing all messages
 {
 #ifdef _WIN32
 	system("cls");
-#else
+#elif __linux__
 	system("clear");
 #endif
 	
