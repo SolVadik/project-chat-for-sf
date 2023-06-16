@@ -6,8 +6,8 @@ PREFIX = /usr/local/bin
 chat:	$(SRC) lib
 	g++ -o $(TARGET) $(SRC) -L. -l$(LIB)
 
-lib:	Chat.cpp Chat.h User.h Message.h	
-	g++ -o $(LIB).o Chat.cpp -c
+lib:	Client.cpp Client.h	
+	g++ -o $(LIB).o Client.cpp -c
 	ar rc lib$(LIB).a $(LIB).o
 
 clean:	
@@ -18,8 +18,5 @@ install:
 
 uninstall:
 	rm -rf $(PREFIX)/$(TARGET)
-
-
-
 
 
