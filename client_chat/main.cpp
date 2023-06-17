@@ -1,6 +1,12 @@
+// This is an independent project of an individual developer. Dear PVS-Studio, please check it.
+
+// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: https://pvs-studio.com
 #include <unordered_set>
 #include "Client.h"
-//#include <conio.h>
+#ifdef _WIN64
+#include <conio.h>
+#endif
+
 
 int main() {
     int client_socket = create_socket();
@@ -32,7 +38,7 @@ int main() {
             }
 
             // Check if the received message is in the container
-            if (messages_not_requiring_response.find(chek) == messages_not_requiring_response.end()) {
+            if (messages_not_requiring_response.find(chek) == messages_not_requiring_response.end() || chek[0] != '\n') {
                 std::string message;
                 std::cin >> message;
                 send_string(client_socket, message);
@@ -42,7 +48,9 @@ int main() {
 
     close_socket(client_socket);
 
-    //_getch();
+#ifdef _WIN64
+    _getch();
+#endif
 
     return 0;
 }

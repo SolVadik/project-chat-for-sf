@@ -1,6 +1,9 @@
+// This is an independent project of an individual developer. Dear PVS-Studio, please check it.
+
+// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: https://pvs-studio.com
 #include "Chat.h"
 
-int  main(int argc, char* argv[]) 
+int  main() 
 {
     int server_socket = create_socket();
     if (server_socket == -1) {

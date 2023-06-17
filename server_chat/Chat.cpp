@@ -1,3 +1,6 @@
+// This is an independent project of an individual developer. Dear PVS-Studio, please check it.
+
+// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: https://pvs-studio.com
 #include "Chat.h"
 
 void Chat::start()
@@ -350,11 +353,11 @@ void Chat::show_chat(int client_socket) const // showing all messages
 	std::ostringstream ss;
 	for (auto& message : messages_) {
 		if (current_user_->get_name() == message.get_from())
-			ss << message.get_from() << ": " << message.get_text() << std::endl;
+			ss << "\n" << message.get_from() << ": " << message.get_text() << "\n";
 		else if (current_user_->get_name() == message.get_to())
-			ss << message.get_from() << " to me(private): " << message.get_text() << std::endl;
+			ss << "\n" << message.get_from() << " to me(private): " << message.get_text() << "\n";
 		else if (message.get_to() == "All")
-			ss << message.get_from() << ": " << message.get_text() << std::endl;
+			ss << "\n" << message.get_from() << ": " << message.get_text() << "\n";
 	}
 
 	std::string serialized_data = ss.str();
@@ -397,26 +400,16 @@ void Chat::add_message(int client_socket)
 	from = current_user_->get_name();
 	do {
 		flag = false;
-		//std::cout << "Enter All to send to everyone, or enter a name" << std::endl;
-		//std::cin >> to;
-
 		std::string message = "Enter All to send to everyone, or enter a name";
 		send_string(client_socket, message);
-
 		int data_size = get_data_size(client_socket);
 		if (data_size > 0) {
 			auto data = receive_data(client_socket, data_size);
-			std::string to(data.get(), data_size);
-
+			to = std::string(data.get(), data_size);
 			if (get_user_name(to) == nullptr && to != "All") {
 				flag = true;
-				/*std::cout << "this name not found" << std::endl;
-				std::cout << "q for exit, any for retry" << std::endl;
-				std::cin >> operation;*/
-
 				std::string message = "this name not found\nq for exit, any for retry";
 				send_string(client_socket, message);
-
 				int data_size = get_data_size(client_socket);
 				if (data_size > 0) {
 					auto data = receive_data(client_socket, data_size);
@@ -427,23 +420,12 @@ void Chat::add_message(int client_socket)
 			}
 		}
 	} while (flag);
-	//std::cout << "Enter your message" << std::endl;
-
 	std::string message = "Enter your message";
 	send_string(client_socket, message);
-
-
-	//char ch;
-	//while (std::cin.get(ch) && ch != '\n');
-	////std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // ignore garbage remaining in the buffer
-	//std::getline(std::cin, text);
-
 	int data_size = get_data_size(client_socket);
 	if (data_size > 0) {
 		auto data = receive_data(client_socket, data_size);
-		std::string text(data.get(), data_size);
-
-
+		text = std::string(data.get(), data_size);
 		messages_.emplace_back(from, to, text);
 	}
 }

@@ -22,8 +22,7 @@ int accept_client(int server_socket);
 int get_data_size(int socket);
 std::unique_ptr<char[]> receive_data(int client_socket, int buffer_size);
 
-void send_data(int client_socket, std::unique_ptr<char[]> buffer, int buffer_size);
+void send_data(int client_socket, const std::unique_ptr<char[]>& buffer, int buffer_size);
 void send_string(int client_socket, const std::string& message);
-
 void close_socket(int server_socket, int client_socket);
 

@@ -1,3 +1,6 @@
+// This is an independent project of an individual developer. Dear PVS-Studio, please check it.
+
+// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: https://pvs-studio.com
 #include "Client.h"
 
 int create_socket() {
@@ -32,12 +35,12 @@ void connect_to_server(int client_socket, const std::string& server_ip, int serv
     }
 }
 
-void send_data(int client_socket, std::unique_ptr<char[]> buffer, int buffer_size) {
+void send_data(int client_socket, const std::unique_ptr<char[]>& buffer, int buffer_size) {
     send(client_socket, buffer.get(), buffer_size, 0);
 }
 
 void send_string(int client_socket, const std::string& message) {
-    std::unique_ptr<char[]> buffer(new char[message.size()]);
+    auto buffer = std::make_unique<char[]>(message.size());
     memcpy(buffer.get(), message.c_str(), message.size());
     send_data(client_socket, std::move(buffer), message.size());
 }
@@ -60,7 +63,7 @@ int get_data_size(int socket) {
 }
 
 std::unique_ptr<char[]> receive_data(int client_socket, int buffer_size) {
-    std::unique_ptr<char[]> data(new char[buffer_size]);
+    auto data = std::make_unique<char[]>(buffer_size);
     int result = recv(client_socket, data.get(), buffer_size, 0);
     if (result > 0) {
         return data;
