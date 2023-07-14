@@ -78,6 +78,59 @@ std::unique_ptr<char[]> receive_data(int client_socket, int buffer_size) {
     }
 }
 
+void send_package(int client_socket, const Package& package) {
+    std::string message = package.message;
+    char flag = package.flag;
+    auto buffer = std::make_unique<char[]>(message.size() + sizeof(flag));
+    memcpy(buffer.get(), message.c_str(), message.size());
+    memcpy(buffer.get() + message.size(), &flag, sizeof(flag));
+    send_data(client_socket, std::move(buffer), message.size() + sizeof(flag));
+}
+
+//std::unique_ptr<Package> receive_package(int client_socket, int buffer_size) {
+//    auto data = std::make_unique<char[]>(buffer_size);
+//    int result = recv(client_socket, data.get(), buffer_size, 0);
+//    if (result > 0) {
+//        auto package = std::make_unique<Package>();
+//        package->message = std::string(data.get(), result - sizeof(package->flag));
+//        memcpy(&package->flag, data.get() + result - sizeof(package->flag), sizeof(package->flag));
+//        return package;
+//    }
+//    else if (result == 0) {
+//        std::cout << "Connection closed" << std::endl;
+//        return nullptr;
+//    }
+//    else {
+//        perror("recv");
+//        exit(EXIT_FAILURE);
+//    }
+//}
+
+std::unique_ptr<Package> receive_package(int client_socket, int buffer_size) {
+    auto data = std::make_unique<char[]>(buffer_size);
+    int total_bytes_received = 0;
+    while (total_bytes_received < buffer_size) {
+        int result = recv(client_socket, data.get() + total_bytes_received, buffer_size - total_bytes_received, 0);
+        if (result > 0) {
+            total_bytes_received += result;
+        }
+        else if (result == 0) {
+            std::cout << "Connection closed" << std::endl;
+            return nullptr;
+        }
+        else {
+            perror("recv");
+            exit(EXIT_FAILURE);
+        }
+    }
+    auto package = std::make_unique<Package>();
+    package->message = std::string(data.get(), buffer_size - sizeof(package->flag));
+    memcpy(&package->flag, data.get() + buffer_size - sizeof(package->flag), sizeof(package->flag));
+    return package;
+}
+
+
+
 void close_socket(int client_socket) {
 #ifdef _WIN64
     closesocket(client_socket);

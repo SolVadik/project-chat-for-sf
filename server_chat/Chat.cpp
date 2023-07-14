@@ -56,17 +56,14 @@ void Chat::show_login_menu(int client_socket)
 {
 	
 
-	std::string message = "Number for choise: \n 1 - Login \n 2 - SignUp \n q - Out";
-	send_string(client_socket, message);
+	Package message{ "Number for choise: \n 1 - Login \n 2 - SignUp \n q - Out", '1'};
+	send_package(client_socket, message);
 
 	int data_size = get_data_size(client_socket);
 	if (data_size > 0) {
-		auto data = receive_data(client_socket, data_size);
-		//std::cout << std::endl << data << std::endl;
-		char operation = data[0];
+		auto data = receive_package(client_socket, data_size);
 
-
-		switch (operation) {
+		switch (data->flag) {
 		case '1': {
 			login(client_socket);
 			break;
@@ -79,8 +76,8 @@ void Chat::show_login_menu(int client_socket)
 			catch (const std::exception& e)
 			{
 				//std::cout << e.what() << std::endl;
-				std::string message = e.what();
-				send_string(client_socket, message);
+				Package message{ e.what(), '2' };
+				send_package(client_socket, message);
 			}
 			break;
 		}
@@ -115,19 +112,17 @@ void Chat::show_login_menu(int client_socket)
 			chmod("messages.txt", S_IRUSR | S_IWUSR);
 #endif
 
-			std::string message = "/End Work";
-			send_string(client_socket, message);
+			Package message{ "End Work", '5' };
+			send_package(client_socket, message);
 
 			is_chat_work_ = false;
 			break;
 		}
 		default: {
-			//std::cout << "enter 1 - 2 or q" << std::endl;
-
-			std::string message = "enter 1 - 2 or q\n";
-			send_string(client_socket, message);
-
-			break;
+			Package message{ "enter 1 - 2 or q", '2' };
+			std::cout << std::endl;
+			send_package(client_socket, message);
+			
 		}
 		}
 	}
@@ -135,37 +130,36 @@ void Chat::show_login_menu(int client_socket)
 
 void Chat::login(int client_socket)
 {
-	std::string message;
+	Package message;
 	do {
-		message = "Enter login: ";
-		send_string(client_socket, message);
+		Package message{ "Enter login: ", '3' };
+		send_package(client_socket, message);
 
 		int data_size = get_data_size(client_socket);
 		if (data_size > 0) {
-			auto data = receive_data(client_socket, data_size);
-			std::string login(data.get(), data_size);
+			auto data = receive_package(client_socket, data_size);
+			std::string login(data->message);
 
-			message = "Enter password: ";
-			send_string(client_socket, message);
+			Package message{ "Enter password: ", '3' };
+			send_package(client_socket, message);
 
 			int data_size = get_data_size(client_socket);
 			if (data_size > 0) {
-				auto data = receive_data(client_socket, data_size);
-				std::string password(data.get(), data_size);
+				auto data = receive_package(client_socket, data_size);
+				std::string password(data->message);
 				
 				current_user_ = get_user_login(login);
 				
 				if (current_user_ == nullptr || current_user_->get_password() != password) {
 					if (current_user_)
 						current_user_ = nullptr;
-					message = "Login or password error \nq for exit, any for retry ";
-					send_string(client_socket, message);
+					Package message{ "Login or password error \nq for exit, any for retry ", '1' };
+					send_package(client_socket, message);
 
 					int data_size = get_data_size(client_socket);
 					if (data_size > 0) {
-						auto data = receive_data(client_socket, data_size);
-						char operation = data[0];
-						if (operation == 'q')
+						auto data = receive_package(client_socket, data_size);
+						if (data->flag == 'q')
 							return;
 					}
 			}
@@ -176,15 +170,15 @@ void Chat::login(int client_socket)
 
 void Chat::sign_up(int client_socket)
 {
-	std::string login, name, password, message;
+	std::string login, name, password;
 
-	message = "Enter login: ";
-	send_string(client_socket, message);
+	Package message{ "Enter login: ", '3' };
+	send_package(client_socket, message);
 
 	int data_size = get_data_size(client_socket);
 	if (data_size > 0) {
-		auto data = receive_data(client_socket, data_size);
-		std::string login(data.get(), data_size);
+		auto data = receive_package(client_socket, data_size);
+		std::string login(data->message);
 
 		if (get_user_login(login))
 			throw UserLoginExp(); // checking is new login unique
@@ -194,25 +188,25 @@ void Chat::sign_up(int client_socket)
 
 
 
-		message = "Enter name: ";
-		send_string(client_socket, message);
+		Package message{ "Enter name: ", '3' };
+		send_package(client_socket, message);
 
 		data_size = get_data_size(client_socket);
 		if (data_size > 0) {
-			auto data = receive_data(client_socket, data_size);
-			std::string name(data.get(), data_size);
+			auto data = receive_package(client_socket, data_size);
+			std::string name(data->message);
 
 			if (get_user_name(name) || name == "All")
 				throw UserNameExp(); // checking is new name unique
 
 
-			message = "Enter password: ";
-			send_string(client_socket, message);
+			Package message{ "Enter password: ", '3' };
+			send_package(client_socket, message);
 
 			data_size = get_data_size(client_socket);
 			if (data_size > 0) {
-				auto data = receive_data(client_socket, data_size);
-				std::string password(data.get(), data_size);
+				auto data = receive_package(client_socket, data_size);
+				std::string password(data->message);
 				users_.emplace_back(login, name, password);
 			}
 		}
@@ -222,21 +216,15 @@ void Chat::sign_up(int client_socket)
 
 void Chat::show_user_menu(int client_socket) //showing what user can do in chat
 {
-	//char operation{ 0 };
-	//std::cout << "Enter: \n 1 - Read message \n 2 - Add message \n 3 - View users \n 4 - Change name \n 5 - Change password \n q - Logout"
-	//	<< std::endl;
-	//std::cin >> operation;
-
-	std::string message = "Enter: \n 1 - Read message \n 2 - Add message \n 3 - View users \n 4 - Change name \n 5 - Change password \n q - Logout";
-	send_string(client_socket, message);
+	
+	Package message{ "Enter: \n 1 - Read message \n 2 - Add message \n 3 - View users \n 4 - Change name \n 5 - Change password \n q - Logout", '1' };
+	send_package(client_socket, message);
 
 	int data_size = get_data_size(client_socket);
 	if (data_size > 0) {
-		auto data = receive_data(client_socket, data_size);
-		//std::cout << std::endl << data << std::endl;
+		auto data = receive_package(client_socket, data_size);
 
-		char operation = data[0];
-		switch (operation) {
+		switch (data->flag) {
 		case '1': {
 			show_chat(client_socket);
 			break;
@@ -256,9 +244,9 @@ void Chat::show_user_menu(int client_socket) //showing what user can do in chat
 			}
 			catch (const std::exception& e)
 			{
-				//std::cout << e.what() << std::endl;
-				std::string message = e.what();
-				send_string(client_socket, message);
+				
+				Package message{ e.what(), '2' };
+				send_package(client_socket, message);
 			}
 			break;
 		}
@@ -271,10 +259,10 @@ void Chat::show_user_menu(int client_socket) //showing what user can do in chat
 			break;
 		}
 		default: {
-			//std::cout << "enter 1 - 5 or q" << std::endl;
-			std::string message = "enter 1 - 5 or q\n";
-			send_string(client_socket, message);
-			break;
+			
+			Package message{ "enter 1 - 5 or q", '2' };
+			std::cout << std::endl;
+			send_package(client_socket, message);
 		}
 		}
 	}
@@ -282,29 +270,20 @@ void Chat::show_user_menu(int client_socket) //showing what user can do in chat
 
 void Chat::change_name(int client_socket)
 {
-	//std::string name;
-	//std::cout << "Enter new name: " << std::endl;
-	//std::cin >> name;
-	std::string message = "Enter new name: ";
-	send_string(client_socket, message);
+	
+	Package message{ "Enter new name: ", '3' };
+	send_package(client_socket, message);
 
 	int data_size = get_data_size(client_socket);
 	if (data_size > 0) {
-		auto data = receive_data(client_socket, data_size);
-		std::string name(data.get(), data_size);
+		auto data = receive_package(client_socket, data_size);
+		std::string name(data->message);
 		if (get_user_name(name) || name == "All")
 			throw UserNameExp();
 		for (auto& user : users_) {
 			if (current_user_->get_login() == user.get_login()) {
 				user.set_name(name);
-				// current variant
-				current_user_->set_name(name);
-
-				// alternative variant. force user relog
-				// current_user_ = nullptr;
-
-				// alternative variant. if use need add Rule of five.
-				//current_user_ = move(get_user_login(current_user_->get_login()));
+				current_user_ = move(get_user_login(current_user_->get_login()));
 				return;
 			}
 		}
@@ -314,29 +293,19 @@ void Chat::change_name(int client_socket)
 
 void Chat::change_password(int client_socket)
 {
-	//std::string password;
-	//std::cout << "Enter new password: " << std::endl;
-	//std::cin >> password;
-
-	std::string message = "Enter new password: ";
-	send_string(client_socket, message);
+	
+	Package message{ "Enter new password: ", '3' };
+	send_package(client_socket, message);
 
 	int data_size = get_data_size(client_socket);
 	if (data_size > 0) {
-		auto data = receive_data(client_socket, data_size);
-		std::string password(data.get(), data_size);
+		auto data = receive_package(client_socket, data_size);
+		std::string password(data->message);
 
 		for (auto& user : users_) {
 			if (current_user_->get_login() == user.get_login()) {
 				user.set_password(password);
-				// current variant
-				current_user_->set_password(password);
-
-				// alternative variant. force user relog
-				// current_user_ = nullptr;
-
-				// alternative variant. if use need add Rule of five.
-				//current_user_ = move(get_user_login(current_user_->get_login()));
+				current_user_ = move(get_user_login(current_user_->get_login()));
 				return;
 			}
 		}
@@ -360,10 +329,14 @@ void Chat::show_chat(int client_socket) const // showing all messages
 			ss << "\n" << message.get_from() << ": " << message.get_text() << "\n";
 	}
 
-	std::string serialized_data = ss.str();
+	Package message{ ss.str(), '2' };
+	std::cout << std::endl;
+	send_package(client_socket, message);
+
+	/*std::string serialized_data = ss.str();
 	if (send(client_socket, serialized_data.c_str(), serialized_data.size(), 0) == -1) {
 		std::cerr << "Failed to send data to client" << std::endl;
-	}
+	}*/
 
 	/*for (auto& message : messages_) {
 		if (current_user_->get_name() == message.get_from())
@@ -386,10 +359,15 @@ void Chat::show_all_user_name(int client_socket) const // showing all users in c
 	for (const auto& user : users_) {
 		ss << user.get_name() << "\n";
 	}
-	std::string serialized_data = ss.str();
+
+	Package message{ ss.str(), '2' };
+	std::cout << std::endl;
+	send_package(client_socket, message);
+
+	/*std::string serialized_data = ss.str();
 	if (send(client_socket, serialized_data.c_str(), serialized_data.size(), 0) == -1) {
 		std::cerr << "Failed to send data to client" << std::endl;
-	}
+	}*/
 
 }
 
@@ -400,32 +378,31 @@ void Chat::add_message(int client_socket)
 	from = current_user_->get_name();
 	do {
 		flag = false;
-		std::string message = "Enter All to send to everyone, or enter a name";
-		send_string(client_socket, message);
+		Package message{ "Enter All to send to everyone, or enter a name", '3' };
+		send_package(client_socket, message);
 		int data_size = get_data_size(client_socket);
 		if (data_size > 0) {
-			auto data = receive_data(client_socket, data_size);
-			to = std::string(data.get(), data_size);
+			auto data = receive_package(client_socket, data_size);
+			to = std::string(data->message);
 			if (get_user_name(to) == nullptr && to != "All") {
 				flag = true;
-				std::string message = "this name not found\nq for exit, any for retry";
-				send_string(client_socket, message);
+				Package message{ "this name not found\nq for exit, any for retry", '1' };
+				send_package(client_socket, message);
 				int data_size = get_data_size(client_socket);
 				if (data_size > 0) {
-					auto data = receive_data(client_socket, data_size);
-					char operation = data[0];
-					if (operation == 'q')
+					auto data = receive_package(client_socket, data_size);
+					if (data->flag == 'q')
 						return;
 				}
 			}
 		}
 	} while (flag);
-	std::string message = "Enter your message";
-	send_string(client_socket, message);
+	Package message{ "Enter your message", '4' };
+	send_package(client_socket, message);
 	int data_size = get_data_size(client_socket);
 	if (data_size > 0) {
-		auto data = receive_data(client_socket, data_size);
-		text = std::string(data.get(), data_size);
+		auto data = receive_package(client_socket, data_size);
+		text = std::string(data->message);
 		messages_.emplace_back(from, to, text);
 	}
 }
